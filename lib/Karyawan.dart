@@ -81,7 +81,7 @@ class KaryawanPageState extends State<KaryawanPage> {
             ),
           ),
           StreamBuilder<List<Map<String, dynamic>>?>(
-            stream: noteStream,
+            stream: ffgd,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return Center(
