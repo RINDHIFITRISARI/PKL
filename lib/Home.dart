@@ -1,7 +1,7 @@
 import 'package:contoh/JadwalLibur.dart';
+import 'package:contoh/historicutiUser.dart';
 import 'package:contoh/sisacutiUser.dart';
 import 'package:flutter/material.dart';
-import 'DataKaryawan.dart';
 import 'Pengajuancuti.dart';
 import 'Profile.dart';
 import 'main.dart';
@@ -72,7 +72,7 @@ class HomeScreenState extends State<HomeScreen> {
                     icon: Icons.history,
                     onTap: () {
                       Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => const PgeHistory(),
+                        builder: (context) => CutiHistoryPage(),
                       ));
                     },
                     iconColor: Colors.white, // Atur warna ikon
