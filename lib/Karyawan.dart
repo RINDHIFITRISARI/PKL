@@ -6,9 +6,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Supabase.initialize(
-    url: 'https://spjdbxrtidsyqfjbocqk.supabase.co',
+    url: 'https://juotgmqnlodflzftrgvy.supabase.co',
     anonKey:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwamRieHJ0aWRzeXFmamJvY3FrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTA0MDQyOTcsImV4cCI6MjAyNTk4MDI5N30.3FPicSbCvJzWEImz5W7byknO5YF_on80rnUuyqJNXI0',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp1b3RnbXFubG9kZmx6ZnRyZ3Z5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTQ2Mzg3NTksImV4cCI6MjAzMDIxNDc1OX0.tKD2lbkOFsvLZwEWNFn_yL8I6dL6G_vQo3A2rJa7AGI',
   );
   runApp(MyApp());
 }
@@ -32,14 +32,16 @@ class KaryawanPage extends StatefulWidget {
 class KaryawanPageState extends State<KaryawanPage> {
   late TextEditingController textController;
   late List<Karyawan> karyawanList;
-  late List<Map<String, dynamic>> noteStream;
+  late Stream<List<Map<String, dynamic>>?> noteStream;
 
   @override
-  void initState() async {
+  void initState() {
     super.initState();
     textController = TextEditingController();
     karyawanList = [];
-    noteStream = await Supabase.instance.client.from('karyawan').select();
+    noteStream = Supabase.instance.client
+        .from('karyawan')
+        .stream(primaryKey: ['id']).asBroadcastStream();
   }
 
   Future<void> singOut() async {
@@ -81,7 +83,7 @@ class KaryawanPageState extends State<KaryawanPage> {
             ),
           ),
           StreamBuilder<List<Map<String, dynamic>>?>(
-            stream: ffgd,
+            stream: noteStream,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return Center(
@@ -97,16 +99,36 @@ class KaryawanPageState extends State<KaryawanPage> {
                   karyawanList = data.map((e) => Karyawan.fromJson(e)).toList();
                 }
                 return ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
                   itemCount: karyawanList.length,
                   itemBuilder: (context, index) {
                     var karyawan = karyawanList[index];
-                    return ListTile(
-                      title: Text(karyawan.nama),
-                      subtitle: Text(karyawan.alamat),
-                      onTap: () => editKaryawan(karyawan),
-                      trailing: IconButton(
-                        icon: Icon(Icons.delete),
-                        onPressed: () => deleteKaryawan(karyawan),
+                    return Card(
+                      child: ListTile(
+                        title: Text(karyawan.nama),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Alamat: ${karyawan.alamat}'),
+                            Text(
+                                'Divisi: ${karyawan.divisi}'), // Menampilkan divisi di sini
+                          ],
+                        ),
+                        onTap: () => editKaryawan(karyawan),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit),
+                              onPressed: () => editKaryawan(karyawan),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () => deleteKaryawan(karyawan),
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -118,7 +140,7 @@ class KaryawanPageState extends State<KaryawanPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: addKaryawan,
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
     );
   }
@@ -190,8 +212,7 @@ class KaryawanPageState extends State<KaryawanPage> {
     final response = await Supabase.instance.client
         .from('karyawan')
         .insert({'nama': nama, 'alamat': alamat, 'divisi': divisi});
-    if (response.error == null) {
-      // If successful, add to local list
+    if (response != null && response.error == null) {
       setState(() {
         karyawanList.add(Karyawan(
           id: response.data![0]['id'] as int,
@@ -274,7 +295,6 @@ class KaryawanPageState extends State<KaryawanPage> {
     final response = await Supabase.instance.client.from('karyawan').update(
         {'nama': nama, 'alamat': alamat, 'divisi': divisi}).eq('id', id);
     if (response.error == null) {
-      // If successful, update local list
       setState(() {
         var index = karyawanList.indexWhere((karyawan) => karyawan.id == id);
         if (index != -1) {
@@ -287,7 +307,6 @@ class KaryawanPageState extends State<KaryawanPage> {
         }
       });
     } else {
-      // If failed, display error message
       print('Error: ${response.error!.message}');
     }
   }
@@ -298,12 +317,10 @@ class KaryawanPageState extends State<KaryawanPage> {
         .delete()
         .eq('id', karyawan.id as Object);
     if (response.error == null) {
-      // If successful, remove from local list
       setState(() {
         karyawanList.removeWhere((element) => element.id == karyawan.id);
       });
     } else {
-      // If failed, display error message
       print('Error: ${response.error!.message}');
     }
   }
@@ -314,14 +331,14 @@ class Karyawan {
   final String nama;
   final String alamat;
   final String divisi;
-  final String profilePictureUrl; // New field for profile picture URL
+  final String profilePictureUrl;
 
   Karyawan({
     required this.id,
     required this.nama,
     required this.alamat,
     required this.divisi,
-    required this.profilePictureUrl, // Updated constructor
+    required this.profilePictureUrl,
   });
 
   factory Karyawan.fromJson(Map<String, dynamic> json) => Karyawan(
@@ -329,7 +346,6 @@ class Karyawan {
         nama: json['nama'] as String,
         alamat: json['alamat'] as String,
         divisi: json['divisi'] as String,
-        profilePictureUrl:
-            json['profilePictureUrl'] ?? '', // Use null-ish coalescing operator
+        profilePictureUrl: json['profilePictureUrl'] ?? '',
       );
 }
