@@ -94,7 +94,7 @@ class PgeHistoryState extends State<PgeHistory> {
     await Supabase.instance.client.auth.signOut();
     if (!mounted) return;
     Navigator.pushReplacement(
-        context, MaterialPageRoute(builder: (cotext) => const LoginPage()));
+        context, MaterialPageRoute(builder: (cotext) => LoginPage()));
   }
 
   Future<void> createKaryawan(String nama, String alamat, String devisi) async {
