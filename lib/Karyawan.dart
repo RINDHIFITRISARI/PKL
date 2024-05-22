@@ -48,7 +48,7 @@ class KaryawanPageState extends State<KaryawanPage> {
     await Supabase.instance.client.auth.signOut();
     if (!mounted) return;
     Navigator.pushReplacement(
-        context, MaterialPageRoute(builder: (cotext) => const LoginPage()));
+        context, MaterialPageRoute(builder: (cotext) => LoginPage()));
   }
 
   @override

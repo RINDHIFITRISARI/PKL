@@ -40,31 +40,33 @@ class LoginPageState extends State<LoginPage> {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   final formKey = GlobalKey<FormState>();
-
   login() async {
     try {
       await Supabase.instance.client.auth.signInWithPassword(
-        password: passwordController.text.trim(),
         email: emailController.text.trim(),
+        password: passwordController.text.trim(),
       );
 
       if (!mounted) return;
 
       final user = Supabase.instance.client.auth.currentUser;
 
-      if (user != null && user.role == 'admin') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => AdminDashboard()),
-        );
-      } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-        );
+      if (user != null) {
+        if (user.role == 'admin') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => AdminDashboard()),
+          );
+        } else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => HomeScreen()),
+          );
+        }
       }
     } on AuthException catch (e) {
       print(e);
+      // Handle kesalahan autentikasi di sini
     }
   }
 
