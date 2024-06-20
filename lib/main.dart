@@ -40,6 +40,7 @@ class LoginPageState extends State<LoginPage> {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   final formKey = GlobalKey<FormState>();
+
   login() async {
     try {
       await Supabase.instance.client.auth.signInWithPassword(
@@ -52,7 +53,7 @@ class LoginPageState extends State<LoginPage> {
       final user = Supabase.instance.client.auth.currentUser;
 
       if (user != null) {
-        if (user.role == 'admin') {
+        if (user.email == 'rindhisari6@gmail.com') {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => AdminDashboard()),
